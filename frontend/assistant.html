@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Assistant - AI Finance Tracker</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .chat-container {
+            height: calc(100vh - 200px);
+            min-height: 500px;
+        }
+        .chat-messages {
+            scroll-behavior: smooth;
+        }
+    </style>
+</head>
+<body>
+    <div class="toast-container position-fixed top-0 end-0 p-3" id="toastContainer"></div>
+
+    <!-- Sidebar -->
+    <nav id="sidebar" class="sidebar">
+        <!-- Sidebar content same as dashboard -->
+        <div class="sidebar-header">
+            <i class="bi bi-robot"></i>
+            <h4>AI Finance</h4>
+        </div>
+        <div class="sidebar-nav">
+            <a href="dashboard.html" class="nav-link"><i class="bi bi-speedometer2"></i> Dashboard</a>
+            <a href="transactions.html" class="nav-link"><i class="bi bi-receipt"></i> Transactions</a>
+            <a href="budget.html" class="nav-link"><i class="bi bi-wallet2"></i> Budget</a>
+            <a href="analytics.html" class="nav-link"><i class="bi bi-graph-up"></i> Analytics</a>
+            <a href="goals.html" class="nav-link"><i class="bi bi-trophy"></i> Goals</a>
+            <a href="assistant.html" class="nav-link active"><i class="bi bi-robot"></i> AI Assistant</a>
+        </div>
+        <div class="sidebar-footer">
+            <a href="#" class="nav-link" onclick="logout()"><i class="bi bi-box-arrow-right"></i> Logout</a>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <header class="top-bar">
+            <div class="d-flex align-items-center gap-3">
+                <button id="mobileToggle" class="mobile-toggle"><i class="bi bi-list"></i></button>
+                <h4 class="mb-0">AI Financial Assistant</h4>
+            </div>
+        </header>
+
+        <div class="row">
+            <div class="col-lg-8 mb-4">
+                <div class="chat-container">
+                    <div class="chat-messages" id="chatMessages">
+                        <div class="chat-message assistant mb-3">
+                            <div class="d-flex flex-shrink-0 align-items-center justify-content-center bg-primary text-white rounded-circle mt-1 me-2" style="width: 32px; height: 32px;">
+                                <i class="bi bi-robot"></i>
+                            </div>
+                            <div class="chat-bubble">
+                                Hello! I'm your AI financial assistant. I can help you analyze your spending, give budget advice, or answer questions about your finances. How can I help you today?
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="chat-input-area">
+                        <div class="quick-questions mb-2 d-none d-md-flex" id="quickQuestions">
+                            <button class="quick-btn" onclick="sendQuickMessage('How much did I spend this month?')">Spend this month?</button>
+                            <button class="quick-btn" onclick="sendQuickMessage('Which category has the highest expense?')">Highest expense category?</button>
+                            <button class="quick-btn" onclick="sendQuickMessage('Am I within my monthly budget?')">Budget status?</button>
+                            <button class="quick-btn" onclick="sendQuickMessage('Predict my expenses for next month')">Expense prediction</button>
+                        </div>
+                        <form id="chatForm" class="d-flex gap-2">
+                            <input type="text" id="chatInput" class="form-control" placeholder="Ask about your finances..." autocomplete="off">
+                            <button type="submit" class="btn btn-primary px-4"><i class="bi bi-send"></i></button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4">
+                <div class="card mb-4">
+                    <div class="card-header bg-transparent border-bottom">
+                        <h6 class="mb-0 text-primary"><i class="bi bi-lightning-charge me-1"></i> Quick Predictions</h6>
+                    </div>
+                    <div class="card-body">
+                        <div id="predictionContent">
+                            <div class="text-center text-muted small py-3"><div class="spinner-border spinner-border-sm me-2" role="status"></div>Analyzing...</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header bg-transparent border-bottom">
+                        <h6 class="mb-0 text-success"><i class="bi bi-check2-circle me-1"></i> Recommendations</h6>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-unstyled mb-0 small" id="recommendationContent">
+                            <li class="text-center text-muted py-2"><div class="spinner-border spinner-border-sm me-2" role="status"></div>Loading recommendations...</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/assistant.js"></script>
+</body>
+</html>

@@ -1,0 +1,27 @@
+# Secrets
+.env
+.env.*
+!.env.example
+**/.env
+**/.env.*
+!**/.env.example
+
+# Dependencies and cache
+**/node_modules/
+**/__pycache__/
+*.pyc
+venv/
+.venv/
+
+# Local databases
+*.db
+*.db-shm
+*.db-wal
+
+# Build files and backups
+**/build/
+**/dist/
+*.backup
+*.bak
+*.backup*frontend/js/assistant.js]
+frontend/js/dashboard.js.broken-backup
