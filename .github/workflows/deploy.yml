@@ -4,26 +4,34 @@ on:
   push:
     branches: [ main ]
 
+permissions:
+  contents: write
+
 jobs:
   build-and-deploy:
+    name: Build and Deploy Frontend
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
+        id: checkout-repo
         uses: actions/checkout@v4
 
       - name: Set up Node.js
+        id: setup-node
         uses: actions/setup-node@v4
         with:
           node-version: '18'
 
-      - name: Install dependencies & Build
+      - name: Install dependencies and build
+        id: build-frontend
         run: |
           cd frontend
           npm install
           npm run build --if-present
 
       - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
+        id: deploy-gh-pages
+        uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./frontend
