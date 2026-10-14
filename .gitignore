@@ -1,4 +1,5 @@
-# Secrets
+
+# Secrets and environment configuration
 .env
 .env.*
 !.env.example
@@ -6,22 +7,36 @@
 **/.env.*
 !**/.env.example
 
-# Dependencies and cache
+# Dependencies and caches
+node_modules/
 **/node_modules/
-**/__pycache__/
+__pycache__/
 *.pyc
 venv/
 .venv/
 
-# Local databases
+# Local databases and database journals
 *.db
 *.db-shm
 *.db-wal
+*.sqlite
+*.sqlite3
 
-# Build files and backups
-**/build/
-**/dist/
+# Build output and logs
+build/
+dist/
+coverage/
+*.log
+
+# Backups and temporary files
 *.backup
+*.backup-*
+*.backup*
 *.bak
-*.backup*frontend/js/assistant.js]
-frontend/js/dashboard.js.broken-backup
+*.broken-backup
+
+# Windows shortcuts
+*.lnk
+
+# Accidentally named JavaScript file
+frontend/js/assistant.js?
