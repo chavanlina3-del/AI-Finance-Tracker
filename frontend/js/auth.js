@@ -1,5 +1,5 @@
 
-const API_BASE = 'https://ai-finance-tracker-backend-s1g2.onrender.com/api';
+const API_BASE_URL = 'https://ai-finance-tracker-backend-s1g2.onrender.com';
 
 function getToken() {
     return sessionStorage.getItem('token') ||

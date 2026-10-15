@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login &bull; AI Finance Tracker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="auth-body">
+  <div class="auth-container">
+    <!-- Left Hero Brand Panel -->
+    <div class="auth-brand-side">
+      <div class="brand-header">
+        <div class="brand-logo">
+          <i class="fa-solid fa-brain-circuit"></i>
+        </div>
+        <span class="brand-name">FinAI Tracker</span>
+      </div>
+
+      <div class="brand-content">
+        <h2>Intelligent financial freedom begins here.</h2>
+        <p>Harness the power of AI to track spending, optimize budgets, detect saving opportunities, and reach your net-worth milestones faster.</p>
+
+        <div class="feature-bullets">
+          <div class="feature-bullet">
+            <div class="bullet-icon"><i class="fa-solid fa-chart-line"></i></div>
+            <div>
+              <strong>Automated Analytics</strong>
+              <p>Visual income, expense, and category trends at a glance.</p>
+            </div>
+          </div>
+          <div class="feature-bullet">
+            <div class="bullet-icon"><i class="fa-solid fa-robot"></i></div>
+            <div>
+              <strong>AI Financial Coach</strong>
+              <p>Real-time personalized savings and budgeting advice.</p>
+            </div>
+          </div>
+          <div class="feature-bullet">
+            <div class="bullet-icon"><i class="fa-solid fa-shield-halved"></i></div>
+            <div>
+              <strong>Private &amp; Secure</strong>
+              <p>Your financial data stays local and completely confidential.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="brand-footer">
+        <div class="user-proof">
+          <div class="avatar-stack">
+            <span>JD</span>
+            <span>SK</span>
+            <span>AL</span>
+          </div>
+          <p>Joined by <strong>15,000+</strong> smart savers</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Form Panel -->
+    <div class="auth-form-side">
+      <div class="auth-card">
+        <!-- Auth Tabs: Login vs Register -->
+        <div class="auth-tabs">
+          <button type="button" class="tab-btn active" id="tab-login" onclick="switchAuthTab('login')">
+            <i class="fa-solid fa-arrow-right-to-bracket"></i> Sign In
+          </button>
+          <button type="button" class="tab-btn" id="tab-register" onclick="switchAuthTab('register')">
+            <i class="fa-solid fa-user-plus"></i> Create Account
+          </button>
+        </div>
+
+        <!-- Alert Notification Box -->
+        <div id="auth-alert" class="alert-box d-none" role="alert">
+          <i id="auth-alert-icon" class="fa-solid fa-circle-exclamation"></i>
+          <span id="auth-alert-text">Error message here</span>
+        </div>
+
+        <!-- LOGIN FORM -->
+        <form id="login-form" class="auth-form" onsubmit="handleLoginSubmit(event)" novalidate>
+          <div class="form-title">
+            <h3>Welcome back</h3>
+            <p>Enter your details below to access your dashboard</p>
+          </div>
+
+          <div class="form-group">
+            <label for="login-email">Email Address</label>
+            <div class="input-wrapper">
+              <i class="fa-regular fa-envelope input-icon"></i>
+              <input 
+                type="email" 
+                id="login-email" 
+                placeholder="name@example.com" 
+                value="demo@finance.ai" 
+                required 
+                autocomplete="username"
+              >
+            </div>
+            <span class="validation-msg" id="login-email-error"></span>
+          </div>
+
+          <div class="form-group">
+            <div class="label-row">
+              <label for="login-password">Password</label>
+              <a href="#" class="forgot-link" onclick="handleForgotPassword(event)">Forgot password?</a>
+            </div>
+            <div class="input-wrapper">
+              <i class="fa-solid fa-lock input-icon"></i>
+              <input 
+                type="password" 
+                id="login-password" 
+                placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;" 
+                value="password123" 
+                required 
+                autocomplete="current-password"
+              >
+              <button type="button" class="pwd-toggle" onclick="togglePasswordVisibility('login-password', this)">
+                <i class="fa-regular fa-eye"></i>
+              </button>
+            </div>
+            <span class="validation-msg" id="login-password-error"></span>
+          </div>
+
+          <div class="form-row">
+            <label class="checkbox-label">
+              <input type="checkbox" id="remember-me" checked>
+              <span>Remember me for 30 days</span>
+            </label>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-block" id="btn-login-submit">
+            <span>Sign In to Dashboard</span>
+            <i class="fa-solid fa-arrow-right"></i>
+          </button>
+
+          <!-- Quick 1-Click Demo Login -->
+          <div class="demo-quick-bar">
+            <span>Or test right away:</span>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="quickDemoLogin()">
+              <i class="fa-solid fa-bolt"></i> 1-Click Demo Access
+            </button>
+          </div>
+        </form>
+
+        <!-- REGISTER FORM -->
+        <form id="register-form" class="auth-form d-none" onsubmit="handleRegisterSubmit(event)" novalidate>
+          <div class="form-title">
+            <h3>Start Tracking with AI</h3>
+            <p>Create your free account in less than 30 seconds</p>
+          </div>
+
+          <div class="form-group">
+            <label for="register-name">Full Name</label>
+            <div class="input-wrapper">
+              <i class="fa-regular fa-user input-icon"></i>
+              <input 
+                type="text" 
+                id="register-name" 
+                placeholder="Alex Morgan" 
+                required 
+                autocomplete="name"
+              >
+            </div>
+            <span class="validation-msg" id="register-name-error"></span>
+          </div>
+
+          <div class="form-group">
+            <label for="register-email">Email Address</label>
+            <div class="input-wrapper">
+              <i class="fa-regular fa-envelope input-icon"></i>
+              <input 
+                type="email" 
+                id="register-email" 
+                placeholder="alex@example.com" 
+                required 
+                autocomplete="email"
+              >
+            </div>
+            <span class="validation-msg" id="register-email-error"></span>
+          </div>
+
+          <div class="form-group">
+            <label for="register-currency">Preferred Currency</label>
+            <div class="input-wrapper">
+              <i class="fa-solid fa-coins input-icon"></i>
+              <select id="register-currency">
+                <option value="USD">USD ($) - US Dollar</option>
+                <option value="EUR">EUR (€) - Euro</option>
+                <option value="GBP">GBP (£) - British Pound</option>
+                <option value="INR">INR (₹) - Indian Rupee</option>
+                <option value="CAD">CAD ($) - Canadian Dollar</option>
+                <option value="AUD">AUD ($) - Australian Dollar</option>
+                <option value="JPY">JPY (¥) - Japanese Yen</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="register-password">Password</label>
+            <div class="input-wrapper">
+              <i class="fa-solid fa-lock input-icon"></i>
+              <input 
+                type="password" 
+                id="register-password" 
+                placeholder="Minimum 6 characters" 
+                required 
+                autocomplete="new-password"
+              >
+              <button type="button" class="pwd-toggle" onclick="togglePasswordVisibility('register-password', this)">
+                <i class="fa-regular fa-eye"></i>
+              </button>
+            </div>
+            <span class="validation-msg" id="register-password-error"></span>
+          </div>
+
+          <div class="form-group">
+            <label for="register-confirm-password">Confirm Password</label>
+            <div class="input-wrapper">
+              <i class="fa-solid fa-lock-open input-icon"></i>
+              <input 
+                type="password" 
+                id="register-confirm-password" 
+                placeholder="Re-enter password" 
+                required 
+                autocomplete="new-password"
+              >
+              <button type="button" class="pwd-toggle" onclick="togglePasswordVisibility('register-confirm-password', this)">
+                <i class="fa-regular fa-eye"></i>
+              </button>
+            </div>
+            <span class="validation-msg" id="register-confirm-password-error"></span>
+          </div>
+
+          <div class="form-row">
+            <label class="checkbox-label">
+              <input type="checkbox" id="register-terms" checked required>
+              <span>I agree to the Terms of Service &amp; Privacy Policy</span>
+            </label>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-block" id="btn-register-submit">
+            <span>Create Account &amp; Launch</span>
+            <i class="fa-solid fa-arrow-right"></i>
+          </button>
+        </form>
+
+        <div class="auth-footer-note">
+          <p><i class="fa-solid fa-lock"></i> End-to-end client security &bull; Demo data stored locally</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/auth.js"></script>
+</body>
+</html>

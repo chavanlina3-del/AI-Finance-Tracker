@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FinAI &bull; AI-Powered Finance Tracker &amp; Budget Coach</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="css/style.css">
+  <!-- Chart.js for data visualization -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body class="dashboard-body">
+  <!-- Top App Header -->
+  <header class="app-header">
+    <div class="header-left">
+      <button class="mobile-menu-toggle" id="mobile-menu-btn" onclick="toggleSidebar()" aria-label="Toggle menu">
+        <i class="fa-solid fa-bars"></i>
+      </button>
+      <div class="brand">
+        <div class="brand-logo">
+          <i class="fa-solid fa-brain-circuit"></i>
+        </div>
+        <span class="brand-name">FinAI Tracker</span>
+      </div>
+      <span class="badge badge-ai"><i class="fa-solid fa-wand-magic-sparkles"></i> AI Active</span>
+    </div>
+
+    <div class="header-center">
+      <div class="global-search">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input type="text" id="global-search-input" placeholder="Search transactions, tags, or categories..." onkeyup="handleGlobalSearch(event)">
+      </div>
+    </div>
+
+    <div class="header-right">
+      <!-- Currency selector -->
+      <div class="currency-pill">
+        <i class="fa-solid fa-coins"></i>
+        <select id="currency-select" onchange="changeCurrency(this.value)">
+          <option value="USD">USD ($)</option>
+          <option value="EUR">EUR (€)</option>
+          <option value="GBP">GBP (£)</option>
+          <option value="INR">INR (₹)</option>
+          <option value="CAD">CAD ($)</option>
+          <option value="AUD">AUD ($)</option>
+          <option value="JPY">JPY (¥)</option>
+        </select>
+      </div>
+
+      <!-- Theme Switcher -->
+      <button class="icon-btn" id="theme-toggle-btn" onclick="toggleTheme()" title="Switch Light/Dark Mode">
+        <i class="fa-regular fa-sun" id="theme-icon"></i>
+      </button>
+
+      <!-- Quick Add Transaction Button -->
+      <button class="btn btn-primary btn-sm" onclick="openTransactionModal()">
+        <i class="fa-solid fa-plus"></i> <span class="hide-mobile">Add Transaction</span>
+      </button>
+
+      <!-- User Profile & Dropdown -->
+      <div class="user-dropdown-container">
+        <button class="user-profile-btn" onclick="toggleUserDropdown()" id="user-menu-button">
+          <div class="user-avatar" id="header-avatar">AM</div>
+          <div class="user-details hide-mobile">
+            <span class="user-name" id="header-user-name">Alex Morgan</span>
+            <span class="user-role" id="header-user-email">demo@finance.ai</span>
+          </div>
+          <i class="fa-solid fa-chevron-down caret-icon"></i>
+        </button>
+
+        <div class="dropdown-menu d-none" id="user-dropdown-menu">
+          <div class="dropdown-header">
+            <strong id="dropdown-user-name">Alex Morgan</strong>
+            <small id="dropdown-user-email">demo@finance.ai</small>
+          </div>
+          <hr class="dropdown-divider">
+          <a href="#" class="dropdown-item" onclick="switchView('settings')">
+            <i class="fa-solid fa-sliders"></i> Settings &amp; Preferences
+          </a>
+          <a href="#" class="dropdown-item" onclick="resetToSampleData()">
+            <i class="fa-solid fa-rotate-left"></i> Reload Demo Data
+          </a>
+          <hr class="dropdown-divider">
+          <button type="button" class="dropdown-item text-danger" onclick="handleLogout()">
+            <i class="fa-solid fa-arrow-right-from-bracket"></i> Sign Out
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="app-layout">
+    <!-- Left Navigation Sidebar -->
+    <aside class="app-sidebar" id="app-sidebar">
+      <nav class="sidebar-nav">
+        <div class="nav-section-title">MAIN</div>
+        <button class="nav-item active" data-view="dashboard" onclick="switchView('dashboard')">
+          <i class="fa-solid fa-chart-pie"></i>
+          <span>Dashboard</span>
+        </button>
+        <button class="nav-item" data-view="transactions" onclick="switchView('transactions')">
+          <i class="fa-solid fa-receipt"></i>
+          <span>Transactions</span>
+          <span class="badge badge-neutral" id="sidebar-tx-count">0</span>
+        </button>
+        <button class="nav-item" data-view="budgets" onclick="switchView('budgets')">
+          <i class="fa-solid fa-wallet"></i>
+          <span>Budgets &amp; Limits</span>
+        </button>
+        <button class="nav-item" data-view="goals" onclick="switchView('goals')">
+          <i class="fa-solid fa-bullseye"></i>
+          <span>Savings Goals</span>
+        </button>
+
+        <div class="nav-section-title">INTELLIGENCE</div>
+        <button class="nav-item ai-nav-item" data-view="ai-coach" onclick="switchView('ai-coach')">
+          <i class="fa-solid fa-robot"></i>
+          <span>FinAI Coach</span>
+          <span class="badge badge-glow">New</span>
+        </button>
+        <button class="nav-item" data-view="analytics" onclick="switchView('analytics')">
+          <i class="fa-solid fa-chart-column"></i>
+          <span>Reports &amp; Trends</span>
+        </button>
+
+        <div class="nav-section-title">SYSTEM</div>
+        <button class="nav-item" data-view="settings" onclick="switchView('settings')">
+          <i class="fa-solid fa-gear"></i>
+          <span>Settings</span>
+        </button>
+      </nav>
+
+      <!-- Sidebar Mini Card: AI Tip -->
+      <div class="sidebar-card">
+        <div class="card-icon"><i class="fa-solid fa-lightbulb"></i></div>
+        <h6>AI Smart Tip</h6>
+        <p id="sidebar-smart-tip">Your dining spending is 12% lower than last week. Great discipline!</p>
+        <button class="btn btn-outline-light btn-xs" onclick="switchView('ai-coach')">Ask Coach &rarr;</button>
+      </div>
+
+      <!-- Sidebar Footer -->
+      <div class="sidebar-footer">
+        <button class="logout-link" onclick="handleLogout()">
+          <i class="fa-solid fa-arrow-right-from-bracket"></i>
+          <span>Sign Out</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="app-main" id="main-content">
+      <!-- Top Flash Alert -->
+      <div id="dashboard-toast" class="toast-notification d-none">
+        <i class="fa-solid fa-circle-check"></i>
+        <span id="toast-message">Notification message</span>
+      </div>
+
+      <!-- VIEW 1: DASHBOARD OVERVIEW -->
+      <div id="view-dashboard" class="content-view active">
+        <!-- Welcome Banner -->
+        <div class="welcome-banner">
+          <div class="welcome-text">
+            <h2>Welcome back, <span id="welcome-username">Alex</span>! &👋</h2>
+            <p>Here is your real-time financial intelligence summary for this month.</p>
+          </div>
+          <div class="banner-actions">
+            <button class="btn btn-outline-secondary" onclick="exportTransactionsCSV()">
+              <i class="fa-solid fa-file-export"></i> Export CSV
+            </button>
+            <button class="btn btn-primary" onclick="openTransactionModal()">
+              <i class="fa-solid fa-plus"></i> New Transaction
+            </button>
+          </div>
+        </div>
+
+        <!-- Metric KPI Cards -->
+        <div class="kpi-grid">
+          <!-- Total Balance -->
+          <div class="kpi-card balance-card">
+            <div class="kpi-header">
+              <span class="kpi-title">Total Net Balance</span>
+              <div class="kpi-icon"><i class="fa-solid fa-landmark"></i></div>
+            </div>
+            <div class="kpi-value" id="kpi-total-balance">$0.00</div>
+            <div class="kpi-footer">
+              <span class="trend-pill trend-up" id="kpi-balance-trend"><i class="fa-solid fa-arrow-up"></i> +4.2%</span>
+              <span class="kpi-subtext">vs previous month</span>
+            </div>
+          </div>
+
+          <!-- Total Income -->
+          <div class="kpi-card income-card">
+            <div class="kpi-header">
+              <span class="kpi-title">Monthly Income</span>
+              <div class="kpi-icon"><i class="fa-solid fa-arrow-trend-up"></i></div>
+            </div>
+            <div class="kpi-value text-success" id="kpi-monthly-income">$0.00</div>
+            <div class="kpi-footer">
+              <span class="kpi-subtext" id="kpi-income-count">0 deposits this month</span>
+            </div>
+          </div>
+
+          <!-- Total Expenses -->
+          <div class="kpi-card expense-card">
+            <div class="kpi-header">
+              <span class="kpi-title">Monthly Expenses</span>
+              <div class="kpi-icon"><i class="fa-solid fa-arrow-trend-down"></i></div>
+            </div>
+            <div class="kpi-value text-danger" id="kpi-monthly-expense">$0.00</div>
+            <div class="kpi-footer">
+              <span class="kpi-subtext" id="kpi-expense-burn">Burn rate: $0/day</span>
+            </div>
+          </div>
+
+          <!-- Savings Rate -->
+          <div class="kpi-card savings-card">
+            <div class="kpi-header">
+              <span class="kpi-title">Savings Rate</span>
+              <div class="kpi-icon"><i class="fa-solid fa-piggy-bank"></i></div>
+            </div>
+            <div class="kpi-value text-info" id="kpi-savings-rate">0%</div>
+            <div class="kpi-footer">
+              <div class="mini-progress-bar">
+                <div class="mini-progress-fill" id="kpi-savings-progress" style="width: 0%"></div>
+              </div>
+              <span class="kpi-subtext" id="kpi-savings-target-msg">Target: 20%+</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- AI Insight Banner -->
+        <div class="ai-insight-banner" id="ai-top-insight">
+          <div class="insight-badge">
+            <i class="fa-solid fa-wand-magic-sparkles"></i> AI Intelligence Insight
+          </div>
+          <div class="insight-body">
+            <h4 id="top-insight-headline">Analyzing your spending velocity...</h4>
+            <p id="top-insight-text">Loading personalized financial recommendations based on your transaction history.</p>
+          </div>
+          <div class="insight-action">
+            <button class="btn btn-sm btn-light" onclick="switchView('ai-coach')">Open AI Coach</button>
+          </div>
+        </div>
+
+        <!-- Charts Grid -->
+        <div class="dashboard-grid">
+          <!-- Income vs Expense Chart -->
+          <div class="panel-card chart-panel">
+            <div class="panel-header">
+              <div class="panel-title-group">
+                <h3>Cash Flow Overview</h3>
+                <p>Monthly Income vs Expenses Comparison</p>
+              </div>
+              <div class="panel-controls">
+                <span class="badge badge-subtle">Last 6 Months</span>
+              </div>
+            </div>
+            <div class="chart-container">
+              <canvas id="cashflowChart"></canvas>
+            </div>
+          </div>
+
+          <!-- Category Breakdown Donut Chart -->
+          <div class="panel-card chart-panel">
+            <div class="panel-header">
+              <div class="panel-title-group">
+                <h3>Spending by Category</h3>
+                <p>Where your money went this month</p>
+              </div>
+            </div>
+            <div class="chart-container donut-container">
+              <canvas id="categoryDonutChart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Two Column: Recent Transactions & Active Budgets -->
+        <div class="dashboard-bottom-grid">
+          <!-- Recent Transactions -->
+          <div class="panel-card">
+            <div class="panel-header">
+              <div class="panel-title-group">
+                <h3>Recent Transactions</h3>
+                <p>Latest inflows and outflows</p>
+              </div>
+              <button class="btn btn-outline-secondary btn-sm" onclick="switchView('transactions')">
+                View All <i class="fa-solid fa-chevron-right"></i>
+              </button>
+            </div>
+            <div class="transaction-table-wrapper">
+              <table class="transaction-table">
+                <thead>
+                  <tr>
+                    <th>Transaction</th>
+                    <th>Category</th>
+                    <th>Date</th>
+                    <th class="text-right">Amount</th>
+                    <th class="text-center">Action</th>
+                  </tr>
+                </thead>
+                <tbody id="recent-transactions-tbody">
+                  <!-- Populated by JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Budget Health & Goals Widget -->
+          <div class="panel-card">
+            <div class="panel-header">
+              <div class="panel-title-group">
+                <h3>Budget Limits</h3>
+                <p>Real-time monthly threshold status</p>
+              </div>
+              <button class="btn btn-outline-secondary btn-sm" onclick="switchView('budgets')">
+                Manage
+              </button>
+            </div>
+            <div class="budget-widget-list" id="dashboard-budget-list">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- VIEW 2: TRANSACTIONS VIEW -->
+      <div id="view-transactions" class="content-view d-none">
+        <div class="view-header">
+          <div>
+            <h2>Transaction Management</h2>
+            <p>Filter, search, categorize, and export your entire financial history</p>
+          </div>
+          <div class="view-actions">
+            <button class="btn btn-outline-secondary" onclick="exportTransactionsCSV()">
+              <i class="fa-solid fa-download"></i> Export CSV
+            </button>
+            <button class="btn btn-primary" onclick="openTransactionModal()">
+              <i class="fa-solid fa-plus"></i> Add Transaction
+            </button>
+          </div>
+        </div>
+
+        <!-- Filters Toolbar -->
+        <div class="toolbar-card">
+          <div class="filter-row">
+            <div class="filter-group flex-1">
+              <label>Search Description</label>
+              <div class="input-wrapper">
+                <i class="fa-solid fa-magnifying-glass input-icon"></i>
+                <input type="text" id="tx-filter-search" placeholder="Filter by title or note..." oninput="applyTransactionFilters()">
+              </div>
+            </div>
+
+            <div class="filter-group">
+              <label>Type</label>
+              <select id="tx-filter-type" onchange="applyTransactionFilters()">
+                <option value="ALL">All Types</option>
+                <option value="INCOME">Income Only</option>
+                <option value="EXPENSE">Expenses Only</option>
+              </select>
+            </div>
+
+            <div class="filter-group">
+              <label>Category</label>
+              <select id="tx-filter-category" onchange="applyTransactionFilters()">
+                <option value="ALL">All Categories</option>
+                <option value="Housing">Housing</option>
+                <option value="Food & Dining">Food &amp; Dining</option>
+                <option value="Transportation">Transportation</option>
+                <option value="Utilities">Utilities</option>
+                <option value="Entertainment">Entertainment</option>
+                <option value="Healthcare">Healthcare</option>
+                <option value="Shopping">Shopping</option>
+                <option value="Salary">Salary &amp; Wages</option>
+                <option value="Investment">Investment &amp; Dividends</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+
+            <div class="filter-group">
+              <label>Sort By</label>
+              <select id="tx-filter-sort" onchange="applyTransactionFilters()">
+                <option value="date-desc">Date: Newest First</option>
+                <option value="date-asc">Date: Oldest First</option>
+                <option value="amount-desc">Amount: High to Low</option>
+                <option value="amount-asc">Amount: Low to High</option>
+              </select>
+            </div>
+
+            <div class="filter-group align-end">
+              <button class="btn btn-secondary" onclick="resetTransactionFilters()">
+                <i class="fa-solid fa-rotate-left"></i> Reset
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Transactions Table -->
+        <div class="panel-card">
+          <div class="transaction-table-wrapper">
+            <table class="transaction-table">
+              <thead>
+                <tr>
+                  <th>Description</th>
+                  <th>Category</th>
+                  <th>Date</th>
+                  <th>Note</th>
+                  <th class="text-right">Amount</th>
+                  <th class="text-center">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="full-transactions-tbody">
+                <!-- Rendered by JS -->
+              </tbody>
+            </table>
+          </div>
+          <div class="table-footer" id="tx-table-footer">
+            <span id="tx-count-label">Showing 0 transactions</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- VIEW 3: BUDGETS VIEW -->
+      <div id="view-budgets" class="content-view d-none">
+        <div class="view-header">
+          <div>
+            <h2>Monthly Budgets &amp; Limits</h2>
+            <p>Control your expenditure across distinct categories and avoid overspending</p>
+          </div>
+          <div class="view-actions">
+            <button class="btn btn-primary" onclick="openBudgetModal()">
+              <i class="fa-solid fa-plus"></i> Set Category Budget
+            </button>
+          </div>
+        </div>
+
+        <!-- Budget Summary Cards -->
+        <div class="budget-cards-grid" id="budget-cards-container">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+
+      <!-- VIEW 4: GOALS VIEW -->
+      <div id="view-goals" class="content-view d-none">
+        <div class="view-header">
+          <div>
+            <h2>Savings Goals &amp; Milestones</h2>
+            <p>Target your financial milestones with automated progress tracking</p>
+          </div>
+          <div class="view-actions">
+            <button class="btn btn-primary" onclick="openGoalModal()">
+              <i class="fa-solid fa-plus"></i> New Savings Goal
+            </button>
+          </div>
+        </div>
+
+        <div class="goals-grid" id="goals-container">
+          <!-- Rendered by JS -->
+        </div>
+      </div>
+
+      <!-- VIEW 5: FINAI COACH & INTELLIGENCE -->
+      <div id="view-ai-coach" class="content-view d-none">
+        <div class="view-header">
+          <div>
+            <h2>FinAI Intelligent Coach</h2>
+            <p>Personalized financial guidance powered by intelligent algorithmic heuristics</p>
+          </div>
+          <div class="view-actions">
+            <button class="btn btn-outline-secondary" onclick="generateFreshAIInsights()">
+              <i class="fa-solid fa-arrows-rotate"></i> Re-Analyze Habits
+            </button>
+          </div>
+        </div>
+
+        <div class="ai-coach-layout">
+          <!-- Left: AI Intelligence Reports -->
+          <div class="ai-reports-col">
+            <div class="panel-card">
+              <div class="panel-header">
+                <h3>Automated Spend Audits</h3>
+              </div>
+              <div class="ai-insights-list" id="ai-insights-list">
+                <!-- AI Insights Cards populated here -->
+              </div>
+            </div>
+
+            <div class="panel-card">
+              <div class="panel-header">
+                <h3>Projected Month-End Balance</h3>
+              </div>
+              <div class="forecast-box" id="forecast-box">
+                <!-- Forecast loaded by JS -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Right: Interactive AI Coach Chat -->
+          <div class="ai-chat-col">
+            <div class="panel-card chat-panel">
+              <div class="chat-header">
+                <div class="chat-title">
+                  <div class="avatar-ai"><i class="fa-solid fa-robot"></i></div>
+                  <div>
+                    <h4>FinAI Advisor</h4>
+                    <span class="online-indicator"><span class="dot"></span> Online &bull; Context Aware</span>
+                  </div>
+                </div>
+                <button class="btn btn-xs btn-outline-secondary" onclick="clearAIChat()">Clear Chat</button>
+              </div>
+
+              <!-- Suggested prompt pills -->
+              <div class="prompt-chips">
+                <button class="chip" onclick="askAICoach('How can I save $200 more this month?')">💰 How to save $200?</button>
+                <button class="chip" onclick="askAICoach('What is my biggest expense category?')">📊 Biggest expense?</button>
+                <button class="chip" onclick="askAICoach('Am I within my budget?')">🎯 Check my budget</button>
+                <button class="chip" onclick="askAICoach('Give me a 50/30/20 breakdown of my income')">⚖️ 50/30/20 plan</button>
+              </div>
+
+              <!-- Chat messages container -->
+              <div class="chat-messages" id="chat-messages-container">
+                <div class="chat-msg ai-msg">
+                  <div class="msg-avatar"><i class="fa-solid fa-robot"></i></div>
+                  <div class="msg-bubble">
+                    <p>Hello! I'm your <strong>FinAI Financial Coach</strong>. I've analyzed your recent transactions and budget allocations. How can I help you optimize your money today?</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Chat Input -->
+              <form class="chat-input-bar" onsubmit="handleChatSubmit(event)">
+                <input type="text" id="ai-chat-input" placeholder="Ask anything about your money, budgets, or savings..." autocomplete="off">
+                <button type="submit" class="btn btn-primary" id="btn-chat-send">
+                  <i class="fa-solid fa-paper-plane"></i>
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- VIEW 6: REPORTS & TRENDS -->
+      <div id="view-analytics" class="content-view d-none">
+        <div class="view-header">
+          <div>
+            <h2>Financial Analytics &amp; Reports</h2>
+            <p>Comprehensive breakdown of your net worth trajectory and spend patterns</p>
+          </div>
+        </div>
+
+        <div class="dashboard-grid">
+          <div class="panel-card chart-panel">
+            <div class="panel-header">
+              <h3>Monthly Spending Trend</h3>
+              <p>Cumulative expenditure trajectory</p>
+            </div>
+            <div class="chart-container">
+              <canvas id="spendingTrendChart"></canvas>
+            </div>
+          </div>
+
+          <div class="panel-card chart-panel">
+            <div class="panel-header">
+              <h3>Income vs Expense Breakdown</h3>
+              <p>Comparative ratio analysis</p>
+            </div>
+            <div class="chart-container donut-container">
+              <canvas id="ratioDonutChart"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- VIEW 7: SETTINGS VIEW -->
+      <div id="view-settings" class="content-view d-none">
+        <div class="view-header">
+          <div>
+            <h2>Settings &amp; Preferences</h2>
+            <p>Customize your currency, profile, notifications, and local data storage</p>
+          </div>
+        </div>
+
+        <div class="settings-grid">
+          <!-- Profile Settings -->
+          <div class="panel-card">
+            <div class="panel-header">
+              <h3>Profile Information</h3>
+            </div>
+            <form onsubmit="saveProfileSettings(event)" class="settings-form">
+              <div class="form-group">
+                <label for="settings-name">Full Name</label>
+                <input type="text" id="settings-name" class="form-input">
+              </div>
+              <div class="form-group">
+                <label for="settings-email">Email Address</label>
+                <input type="email" id="settings-email" class="form-input">
+              </div>
+              <button type="submit" class="btn btn-primary">Save Profile</button>
+            </form>
+          </div>
+
+          <!-- Currency & Preferences -->
+          <div class="panel-card">
+            <div class="panel-header">
+              <h3>App Preferences</h3>
+            </div>
+            <div class="settings-form">
+              <div class="form-group">
+                <label for="settings-currency">Display Currency</label>
+                <select id="settings-currency" class="form-input" onchange="changeCurrency(this.value)">
+                  <option value="USD">USD ($) - US Dollar</option>
+                  <option value="EUR">EUR (€) - Euro</option>
+                  <option value="GBP">GBP (£) - British Pound</option>
+                  <option value="INR">INR (₹) - Indian Rupee</option>
+                  <option value="CAD">CAD ($) - Canadian Dollar</option>
+                  <option value="AUD">AUD ($) - Australian Dollar</option>
+                  <option value="JPY">JPY (¥) - Japanese Yen</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label>Theme Mode</label>
+                <div class="theme-choice-buttons">
+                  <button type="button" class="btn btn-secondary btn-sm" onclick="setTheme('dark')">Dark Theme</button>
+                  <button type="button" class="btn btn-secondary btn-sm" onclick="setTheme('light')">Light Theme</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Data Backup & Reset -->
+          <div class="panel-card">
+            <div class="panel-header">
+              <h3>Data Management</h3>
+            </div>
+            <div class="data-mgmt-box">
+              <p>Your data is securely maintained in your browser's local sandbox storage.</p>
+              <div class="data-actions-row">
+                <button class="btn btn-secondary" onclick="exportFullJSONBackup()">
+                  <i class="fa-solid fa-file-arrow-down"></i> Backup All Data (JSON)
+                </button>
+                <button class="btn btn-secondary" onclick="resetToSampleData()">
+                  <i class="fa-solid fa-rotate-left"></i> Restore Demo Data
+                </button>
+                <button class="btn btn-danger" onclick="clearAllUserData()">
+                  <i class="fa-solid fa-trash-can"></i> Erase All Data
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- ==================== MODALS ==================== -->
+
+  <!-- ADD / EDIT TRANSACTION MODAL -->
+  <div class="modal-backdrop d-none" id="modal-transaction">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="tx-modal-title">Add Transaction</h3>
+        <button class="modal-close-btn" onclick="closeTransactionModal()">&times;</button>
+      </div>
+      <form id="transaction-form" onsubmit="saveTransactionForm(event)">
+        <input type="hidden" id="tx-form-id">
+        <div class="modal-body">
+          <!-- Type Toggle -->
+          <div class="type-toggle-wrapper">
+            <button type="button" class="type-btn active expense-btn" id="type-btn-expense" onclick="setTxType('EXPENSE')">
+              <i class="fa-solid fa-arrow-down"></i> Expense
+            </button>
+            <button type="button" class="type-btn income-btn" id="type-btn-income" onclick="setTxType('INCOME')">
+              <i class="fa-solid fa-arrow-up"></i> Income
+            </button>
+          </div>
+          <input type="hidden" id="tx-type" value="EXPENSE">
+
+          <div class="form-group">
+            <label for="tx-amount">Amount (<span class="currency-symbol-label">$</span>)</label>
+            <input type="number" step="0.01" min="0.01" id="tx-amount" class="form-input" placeholder="0.00" required>
+          </div>
+
+          <div class="form-group">
+            <label for="tx-title">Description / Payee</label>
+            <input type="text" id="tx-title" class="form-input" placeholder="e.g. Grocery Store, Salary, Netflix" required>
+          </div>
+
+          <div class="form-row-2">
+            <div class="form-group">
+              <label for="tx-category">Category</label>
+              <select id="tx-category" class="form-input" required>
+                <!-- populated by JS -->
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="tx-date">Date</label>
+              <input type="date" id="tx-date" class="form-input" required>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="tx-notes">Notes (Optional)</label>
+            <textarea id="tx-notes" class="form-input" rows="2" placeholder="Add optional details or tags..."></textarea>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeTransactionModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="btn-save-tx">Save Transaction</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- SET BUDGET MODAL -->
+  <div class="modal-backdrop d-none" id="modal-budget">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>Set Category Budget</h3>
+        <button class="modal-close-btn" onclick="closeBudgetModal()">&times;</button>
+      </div>
+      <form id="budget-form" onsubmit="saveBudgetForm(event)">
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="budget-category">Category</label>
+            <select id="budget-category" class="form-input" required>
+              <option value="Food & Dining">Food &amp; Dining</option>
+              <option value="Housing">Housing</option>
+              <option value="Transportation">Transportation</option>
+              <option value="Utilities">Utilities</option>
+              <option value="Entertainment">Entertainment</option>
+              <option value="Healthcare">Healthcare</option>
+              <option value="Shopping">Shopping</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="budget-limit">Monthly Limit (<span class="currency-symbol-label">$</span>)</label>
+            <input type="number" step="1" min="1" id="budget-limit" class="form-input" placeholder="500" required>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeBudgetModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Budget Limit</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- SAVINGS GOAL MODAL -->
+  <div class="modal-backdrop d-none" id="modal-goal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>New Savings Goal</h3>
+        <button class="modal-close-btn" onclick="closeGoalModal()">&times;</button>
+      </div>
+      <form id="goal-form" onsubmit="saveGoalForm(event)">
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="goal-name">Goal Name</label>
+            <input type="text" id="goal-name" class="form-input" placeholder="e.g. Emergency Fund, New Laptop, Vacation" required>
+          </div>
+
+          <div class="form-row-2">
+            <div class="form-group">
+              <label for="goal-target">Target Amount (<span class="currency-symbol-label">$</span>)</label>
+              <input type="number" step="1" min="1" id="goal-target" class="form-input" placeholder="3000" required>
+            </div>
+            <div class="form-group">
+              <label for="goal-current">Current Saved (<span class="currency-symbol-label">$</span>)</label>
+              <input type="number" step="1" min="0" id="goal-current" class="form-input" placeholder="500" required>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="goal-deadline">Target Deadline (Optional)</label>
+            <input type="date" id="goal-deadline" class="form-input">
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeGoalModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary">Create Goal</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/auth.js"></script>
+  <script src="js/charts.js"></script>
+  <script src="js/ai-advisor.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
