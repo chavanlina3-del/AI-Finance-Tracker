@@ -1,5 +1,11 @@
 
-const API_BASE_URL = 'https://ai-finance-tracker-backend-s1g2.onrender.com';
+/* ==========================================
+   AI FINANCE TRACKER - SHARED API CONFIG
+   ========================================== */
+
+// Use one shared URL without redeclaring a global const.
+window.API_BASE_URL =
+    'https://ai-finance-tracker-backend-s1g2.onrender.com';
 
 function getToken() {
     return sessionStorage.getItem('token') ||
@@ -30,7 +36,7 @@ function getAuthHeaders() {
     var token = getToken();
 
     if (token) {
-        headers['Authorization'] = 'Bearer ' + token;
+        headers.Authorization = 'Bearer ' + token;
     }
 
     return headers;
@@ -57,6 +63,10 @@ function logout() {
     localStorage.removeItem('user');
     window.location.href = 'login.html';
 }
+
+/* ==========================================
+   TOAST NOTIFICATIONS
+   ========================================== */
 
 function showToast(message, type) {
     type = type || 'info';
@@ -107,6 +117,10 @@ function showToast(message, type) {
     }
 }
 
+/* ==========================================
+   LOADING INDICATOR
+   ========================================== */
+
 function showLoading() {
     var overlay = document.getElementById('loading-overlay');
 
@@ -123,27 +137,53 @@ function hideLoading() {
     }
 }
 
+/* ==========================================
+   CENTRAL API REQUEST FUNCTION
+
+   Accepts either:
+   apiRequest('/login')             -> /api/login
+   apiRequest('/register')          -> /api/register
+   apiRequest('/api/transactions')  -> /api/transactions
+   ========================================== */
+
 async function apiRequest(endpoint, options) {
     options = options || {};
 
-    var url = API_BASE_URL + endpoint;
+    if (typeof endpoint !== 'string' || !endpoint.trim()) {
+        throw new Error('An API endpoint is required.');
+    }
+
+    endpoint = endpoint.trim();
+
+    if (endpoint.charAt(0) !== '/') {
+        endpoint = '/' + endpoint;
+    }
+
+    // Avoid adding /api twice.
+    if (endpoint !== '/api' && !endpoint.startsWith('/api/')) {
+        endpoint = '/api' + endpoint;
+    }
+
+    var url = window.API_BASE_URL + endpoint;
     var headers = getAuthHeaders();
 
     if (options.headers) {
         Object.assign(headers, options.headers);
     }
 
+    var requestOptions = Object.assign({}, options, {
+        headers: headers
+    });
+
     var response;
 
     try {
-        response = await fetch(url, Object.assign({}, options, {
-            headers: headers
-        }));
+        response = await fetch(url, requestOptions);
     } catch (error) {
-        console.error('API connection failed:', error);
+        console.error('API connection failed:', url, error);
 
         throw new Error(
-            'Cannot connect to the backend. Make sure it is running on port 5000.'
+            'Cannot connect to the online backend. Check your internet connection.'
         );
     }
 
@@ -152,13 +192,21 @@ async function apiRequest(endpoint, options) {
     });
 
     if (!response.ok) {
-        throw new Error(
-            data.error || data.message || ('Request failed (' + response.status + ')')
-        );
+        var message =
+            data.error ||
+            data.message ||
+            ('API request failed with status ' + response.status);
+
+        console.error('API request failed:', response.status, url, data);
+        throw new Error(message);
     }
 
     return data;
 }
+
+/* ==========================================
+   FORMATTING HELPERS
+   ========================================== */
 
 function formatCurrency(amount) {
     return new Intl.NumberFormat('en-IN', {
@@ -184,6 +232,10 @@ function formatDate(dateStr) {
         day: 'numeric'
     });
 }
+
+/* ==========================================
+   MOBILE SIDEBAR
+   ========================================== */
 
 document.addEventListener('DOMContentLoaded', function () {
     var mobileToggle = document.getElementById('mobileToggle');
