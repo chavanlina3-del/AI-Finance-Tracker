@@ -126,7 +126,7 @@ function hideLoading() {
 async function apiRequest(endpoint, options) {
     options = options || {};
 
-    var url = API_BASE + endpoint;
+    var url = API_BASE_URL + endpoint;
     var headers = getAuthHeaders();
 
     if (options.headers) {
