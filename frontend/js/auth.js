@@ -1,5 +1,5 @@
 
-const API_BASE = 'http://localhost:5000/api';
+const API_BASE = 'https://ai-finance-tracker-backend-s1g2.onrender.com/api';
 
 function getToken() {
     return sessionStorage.getItem('token') ||
