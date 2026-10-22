@@ -33,13 +33,16 @@ db.exec(`
     color TEXT NOT NULL
   );
 
-  CREATE TABLE IF NOT EXISTS budgets (
+  
+CREATE TABLE IF NOT EXISTS budgets (
     id TEXT PRIMARY KEY,
+    user_id TEXT,
     category TEXT NOT NULL,
     amount REAL NOT NULL,
     month TEXT NOT NULL,
-    UNIQUE(category, month)
-  );
+    UNIQUE(category, month, user_id)
+);
+
 `);
 
 // Seed default categories
