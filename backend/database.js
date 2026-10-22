@@ -75,5 +75,8 @@ if (checkCategories.count === 0) {
   insertMany(defaultCategories);
   console.log('Seeded default categories.');
 }
+try {
+  db.exec("ALTER TABLE budgets ADD COLUMN user_id TEXT");
+} catch (e) {}
 
 module.exports = db;
