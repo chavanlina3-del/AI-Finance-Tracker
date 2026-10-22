@@ -42,6 +42,16 @@ CREATE TABLE IF NOT EXISTS budgets (
     month TEXT NOT NULL,
     UNIQUE(category, month, user_id)
 );
+  CREATE TABLE IF NOT EXISTS goals (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL,
+    name TEXT NOT NULL,
+    target_amount REAL NOT NULL,
+    current_amount REAL NOT NULL DEFAULT 0,
+    target_date TEXT,
+    status TEXT NOT NULL DEFAULT 'Active',
+    created_at TEXT NOT NULL
+  );
 
 `);
 
