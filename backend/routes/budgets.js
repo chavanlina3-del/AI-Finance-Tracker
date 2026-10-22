@@ -246,11 +246,19 @@ router.post('/', (req, res) => {
 
 // PUT /api/budgets/:id
 // Edit an existing budget.
+
 router.put('/:id', (req, res) => {
   try {
     const userId = getUserId(req);
     const { id } = req.params;
-    const { category, amount, month, year } = req.body || {};
+    const {
+      category,
+      amount,
+      month,
+      year,
+      total_budget,
+      categories
+    } = req.body || {};
 
     const existing = db.prepare(`
       SELECT id, user_id, category, amount, month
@@ -264,6 +272,87 @@ router.put('/:id', (req, res) => {
       });
     }
 
+    const monthKey = getMonthKey(
+      month === undefined ? existing.month : month,
+      year
+    );
+
+    const saveBudget = db.prepare(`
+      INSERT INTO budgets (id, user_id, category, amount, month)
+      VALUES (?, ?, ?, ?, ?)
+      ON CONFLICT(category, month, user_id)
+      DO UPDATE SET amount = excluded.amount
+    `);
+
+    // Save total and category budgets together.
+    if (
+      categories !== undefined &&
+      categories !== null &&
+      typeof categories === 'object' &&
+      !Array.isArray(categories)
+    ) {
+      const entries = Object.entries(categories);
+
+      if (
+        total_budget !== undefined &&
+        (!Number.isFinite(Number(total_budget)) ||
+          Number(total_budget) <= 0)
+      ) {
+        return res.status(400).json({
+          error: 'Total budget must be a positive number.'
+        });
+      }
+
+      if (entries.some(([cat, limit]) =>
+        typeof cat !== 'string' ||
+        !cat.trim() ||
+        cat.trim() === '__TOTAL__' ||
+        cat.length > 100 ||
+        String(limit).trim() === '' ||
+        !Number.isFinite(Number(limit)) ||
+        Number(limit) <= 0
+      )) {
+        return res.status(400).json({
+          error: 'Every category must have a valid name and positive budget.'
+        });
+      }
+
+      const saveAll = db.transaction(() => {
+        if (total_budget !== undefined) {
+          saveBudget.run(
+            id,
+            userId,
+            '__TOTAL__',
+            Number(total_budget),
+            monthKey
+          );
+        }
+
+        for (const [cat, limit] of entries) {
+          saveBudget.run(
+            require('uuid').v4(),
+            userId,
+            cat.trim(),
+            Number(limit),
+            monthKey
+          );
+        }
+      });
+
+      saveAll();
+
+      return res.json({
+        success: true,
+        message: 'Budget updated successfully.',
+        month: monthKey,
+        total_budget: total_budget === undefined
+          ? null
+          : Number(total_budget),
+        categories
+      });
+    }
+
+    // Preserve support for editing a single category budget.
     const newCategory = category === undefined
       ? existing.category
       : typeof category === 'string'
@@ -276,11 +365,6 @@ router.put('/:id', (req, res) => {
         ? NaN
         : Number(amount);
 
-    const newMonth = getMonthKey(
-      month === undefined ? existing.month : month,
-      year
-    );
-
     if (
       !newCategory ||
       newCategory.length > 100 ||
@@ -292,36 +376,15 @@ router.put('/:id', (req, res) => {
       });
     }
 
-    const duplicate = db.prepare(`
-      SELECT id FROM budgets
-      WHERE user_id = ?
-        AND category = ?
-        AND month = ?
-        AND id != ?
-    `).get(userId, newCategory, newMonth, id);
-
-    if (duplicate) {
-      return res.status(409).json({
-        error: 'A budget already exists for this category and month.'
-      });
-    }
-
     db.prepare(`
       UPDATE budgets
       SET category = ?, amount = ?, month = ?
       WHERE id = ? AND user_id = ?
-    `).run(newCategory, newAmount, newMonth, id, userId);
-
-    const updated = db.prepare(`
-      SELECT id, user_id, category, amount, month
-      FROM budgets
-      WHERE id = ? AND user_id = ?
-    `).get(id, userId);
+    `).run(newCategory, newAmount, monthKey, id, userId);
 
     return res.json({
       success: true,
-      message: 'Budget updated successfully.',
-      budget: updated
+      message: 'Budget updated successfully.'
     });
   } catch (error) {
     console.error('Error updating budget:', error);
