@@ -15,16 +15,16 @@ db.exec(`
     password TEXT NOT NULL
   );
 
-  CREATE TABLE IF NOT EXISTS transactions (
+ CREATE TABLE IF NOT EXISTS transactions (
     id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL,
     type TEXT CHECK(type IN ('income', 'expense')) NOT NULL,
     amount REAL NOT NULL,
     category TEXT NOT NULL,
     description TEXT,
     date TEXT NOT NULL,
     created_at TEXT NOT NULL
-  );
-
+);
   CREATE TABLE IF NOT EXISTS categories (
     id TEXT PRIMARY KEY,
     name TEXT UNIQUE NOT NULL,
@@ -75,8 +75,20 @@ if (checkCategories.count === 0) {
   insertMany(defaultCategories);
   console.log('Seeded default categories.');
 }
-try {
-  db.exec("ALTER TABLE budgets ADD COLUMN user_id TEXT");
-} catch (e) {}
+// Safe migration: add user_id to existing tables if missing
+function addColumnIfMissing(tableName, columnName, columnDefinition) {
+  const columns = db.pragma(`table_info(${tableName})`);
+  const exists = columns.some(column => column.name === columnName);
+
+  if (!exists) {
+    db.exec(
+      `ALTER TABLE ${tableName} ADD COLUMN ${columnName} ${columnDefinition}`
+    );
+    console.log(`Migration: added ${columnName} to ${tableName}`);
+  }
+}
+
+addColumnIfMissing('transactions', 'user_id', 'TEXT');
+addColumnIfMissing('budgets', 'user_id', 'TEXT');
 
 module.exports = db;
