@@ -177,24 +177,16 @@ async function saveBudget(e) {
             body: JSON.stringify(payload)
         });
 
-        showToast('Budget saved successfully!', 'success');
-
-       const modalElement = document.getElementById('budgetModal');
+        const modalElement = document.getElementById('budgetModal');
 const modal = bootstrap.Modal.getInstance(modalElement);
 
-
 if (modal) {
-    modalElement.addEventListener('hidden.bs.modal', () => {
-        if (document.activeElement instanceof HTMLElement) {
-            document.activeElement.blur();
-        }
-    }, { once: true });
-
     modal.hide();
 }
 
 await loadBudget();
 
+showToast('Budget saved successfully!', 'success');
 } catch (error) {
     console.error('Save budget error:', error);
     showToast(
