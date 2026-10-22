@@ -44,12 +44,14 @@ const categoriesRouter = require('./routes/categories');
 const insightsRouter = require('./routes/insights');
 const budgetsRouter = require('./routes/budgets');
 const analyticsRouter = require('./routes/analytics');
+const goalsRouter = require('./routes/goals');
 
 app.use('/api/transactions', transactionsRouter);
 app.use('/api/categories', categoriesRouter);
 app.use('/api/insights', insightsRouter);
 app.use('/api/budgets', budgetsRouter);
 app.use('/api/analytics', analyticsRouter);
+app.use('/api/goals', goalsRouter);
 
 // ==========================================
 // HEALTH CHECK
