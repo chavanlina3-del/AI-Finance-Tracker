@@ -137,16 +137,21 @@ function openBudgetModal(data = null) {
     modal.show();
 }
 
+
 async function saveBudget(e) {
     e.preventDefault();
-    
+
     const id = document.getElementById('budgetId').value;
-    const total_budget = parseFloat(document.getElementById('totalBudget').value);
-    
+    const total_budget = parseFloat(
+        document.getElementById('totalBudget').value
+    );
+
     const categories = {};
+
     document.querySelectorAll('.cat-budget-input').forEach(input => {
         const val = parseFloat(input.value);
-        if (val > 0) {
+
+        if (Number.isFinite(val) && val > 0) {
             categories[input.dataset.category] = val;
         }
     });
@@ -158,19 +163,36 @@ async function saveBudget(e) {
         categories
     };
 
+    if (!Number.isFinite(total_budget) || total_budget <= 0) {
+        showToast('Please enter a valid total budget.', 'error');
+        return;
+    }
+
     try {
-        const url = id ? `/budgets/${id}` : '/budgets';
+        const url = id ? `/budgets/${encodeURIComponent(id)}` : '/budgets';
         const method = id ? 'PUT' : 'POST';
-        
-        await apiRequest(url, {
-            method: method,
+
+        const result = await apiRequest(url, {
+            method,
             body: JSON.stringify(payload)
         });
-        
-        showToast('Budget saved successfully', 'success');
-        bootstrap.Modal.getInstance(document.getElementById('budgetModal')).hide();
-        loadBudget();
+
+        showToast('Budget saved successfully!', 'success');
+
+        const modalElement = document.getElementById('budgetModal');
+        const modal = bootstrap.Modal.getInstance(modalElement);
+
+        if (modal) {
+            modal.hide();
+        }
+
+        await loadBudget();
+
     } catch (error) {
-        // Error handled
+        console.error('Save budget error:', error);
+        showToast(
+            error.message || 'Could not save budget. Please try again.',
+            'error'
+        );
     }
 }
