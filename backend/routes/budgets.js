@@ -41,8 +41,7 @@ function getMonthKey(month, year) {
   return `${y}-${String(m).padStart(2, '0')}`;
 }
 
-// GET /api/budgets?month=10&year=2026
-// GET /api/budgets?month=2026-10
+// GET /api/budgets
 router.get('/', (req, res) => {
   try {
     const userId = getUserId(req);
@@ -55,7 +54,6 @@ router.get('/', (req, res) => {
       ORDER BY category
     `).all(monthKey, userId);
 
-    // Keep the simple array response for existing frontend pages.
     if (req.query.detailed !== 'true' && !req.query.year) {
       return res.json(budgets);
     }
@@ -89,9 +87,11 @@ router.get('/', (req, res) => {
       const spent = Number(expense.spent) || 0;
       totalSpent += spent;
 
-      if (Object.prototype.hasOwnProperty.call(
-        categorySpent, expense.category
-      )) {
+      if (
+        Object.prototype.hasOwnProperty.call(
+          categorySpent, expense.category
+        )
+      ) {
         categorySpent[expense.category] = spent;
       }
     });
@@ -112,7 +112,7 @@ router.get('/', (req, res) => {
 });
 
 // POST /api/budgets
-// Save the total budget and category limits.
+// Save total budget and category limits.
 router.post('/', (req, res) => {
   try {
     const userId = getUserId(req);
@@ -134,7 +134,6 @@ router.post('/', (req, res) => {
       DO UPDATE SET amount = excluded.amount
     `);
 
-    // Save multiple category limits and the total budget.
     if (
       categories !== undefined &&
       categories !== null &&
@@ -144,9 +143,10 @@ router.post('/', (req, res) => {
       const entries = Object.entries(categories);
 
       if (entries.some(([cat, limit]) =>
+        typeof cat !== 'string' ||
         !cat.trim() ||
-        cat === '__TOTAL__' ||
-        String(cat).length > 100 ||
+        cat.trim() === '__TOTAL__' ||
+        cat.length > 100 ||
         String(limit).trim() === '' ||
         !Number.isFinite(Number(limit)) ||
         Number(limit) <= 0
@@ -204,7 +204,6 @@ router.post('/', (req, res) => {
       });
     }
 
-    // Save one category budget.
     if (
       typeof category !== 'string' ||
       !category.trim() ||
@@ -245,8 +244,96 @@ router.post('/', (req, res) => {
   }
 });
 
-// GET /api/budgets/status?month=2026-10
-// Returns category spending and remaining budgets.
+// PUT /api/budgets/:id
+// Edit an existing budget.
+router.put('/:id', (req, res) => {
+  try {
+    const userId = getUserId(req);
+    const { id } = req.params;
+    const { category, amount, month, year } = req.body || {};
+
+    const existing = db.prepare(`
+      SELECT id, user_id, category, amount, month
+      FROM budgets
+      WHERE id = ? AND user_id = ?
+    `).get(id, userId);
+
+    if (!existing) {
+      return res.status(404).json({
+        error: 'Budget not found. Refresh the budget list and try again.'
+      });
+    }
+
+    const newCategory = category === undefined
+      ? existing.category
+      : typeof category === 'string'
+        ? category.trim()
+        : '';
+
+    const newAmount = amount === undefined
+      ? Number(existing.amount)
+      : String(amount).trim() === ''
+        ? NaN
+        : Number(amount);
+
+    const newMonth = getMonthKey(
+      month === undefined ? existing.month : month,
+      year
+    );
+
+    if (
+      !newCategory ||
+      newCategory.length > 100 ||
+      !Number.isFinite(newAmount) ||
+      newAmount <= 0
+    ) {
+      return res.status(400).json({
+        error: 'A valid category and positive amount are required.'
+      });
+    }
+
+    const duplicate = db.prepare(`
+      SELECT id FROM budgets
+      WHERE user_id = ?
+        AND category = ?
+        AND month = ?
+        AND id != ?
+    `).get(userId, newCategory, newMonth, id);
+
+    if (duplicate) {
+      return res.status(409).json({
+        error: 'A budget already exists for this category and month.'
+      });
+    }
+
+    db.prepare(`
+      UPDATE budgets
+      SET category = ?, amount = ?, month = ?
+      WHERE id = ? AND user_id = ?
+    `).run(newCategory, newAmount, newMonth, id, userId);
+
+    const updated = db.prepare(`
+      SELECT id, user_id, category, amount, month
+      FROM budgets
+      WHERE id = ? AND user_id = ?
+    `).get(id, userId);
+
+    return res.json({
+      success: true,
+      message: 'Budget updated successfully.',
+      budget: updated
+    });
+  } catch (error) {
+    console.error('Error updating budget:', error);
+
+    return res.status(400).json({
+      error: error.message || 'Failed to update budget.'
+    });
+  }
+});
+
+// GET /api/budgets/status
+// Return category spending and remaining budgets.
 router.get('/status', (req, res) => {
   try {
     const userId = getUserId(req);
